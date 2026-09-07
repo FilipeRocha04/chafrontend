@@ -725,7 +725,12 @@ function ManageRow({ item, onEdit }: { item: GiftItem; onEdit: () => void }) {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
-      <span className="min-w-0 truncate text-sm">{itemLabel(item)}</span>
+      <div className="min-w-0">
+        <p className="truncate text-sm">{itemLabel(item)}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Meta: {item.desired_quantity} {item.desired_quantity === 1 ? "unidade" : "unidades"}
+        </p>
+      </div>
       <div className="flex shrink-0 items-center gap-2">
         <Switch
           checked={item.active}
