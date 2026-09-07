@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Gift, Home, LayoutDashboard, type LucideIcon } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type NavItem = {
   to: string;
@@ -16,18 +16,34 @@ const items: NavItem[] = [
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    document.body.style.paddingBottom = "72px";
-    document.documentElement.style.setProperty("--admin-nav-h", "72px");
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const applyHeight = () => {
+      const height = `${nav.offsetHeight}px`;
+      document.body.style.paddingBottom = height;
+      document.documentElement.style.setProperty("--admin-nav-h", height);
+    };
+
+    applyHeight();
+    const observer = new ResizeObserver(applyHeight);
+    observer.observe(nav);
+
     return () => {
+      observer.disconnect();
       document.body.style.paddingBottom = "";
       document.documentElement.style.removeProperty("--admin-nav-h");
     };
   }, []);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
+    <nav
+      ref={navRef}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]"
+    >
       <div className="mx-auto flex max-w-[600px] items-stretch justify-around">
         {items.map(({ to, label, icon: Icon }) => {
           const isActive = pathname.startsWith(to);
