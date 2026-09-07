@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { fetchMe, hasToken, login, logout, register } from "@/lib/auth";
+import { fetchMe, hasToken, login, logout } from "@/lib/auth";
 import {
   createGiftItem,
   fetchCategories,
@@ -83,11 +83,8 @@ function AdminPage() {
 
 function LoginCard({ onSuccess }: { onSuccess: () => void }) {
   const [identifier, setIdentifier] = useState("");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState<"entrar" | "criar">("entrar");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -96,18 +93,10 @@ function LoginCard({ onSuccess }: { onSuccess: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      if (mode === "entrar") {
-        await login(identifier, password);
-      } else {
-        await register(email, username, password);
-      }
+      await login(identifier, password);
       onSuccess();
     } catch {
-      setError(
-        mode === "entrar"
-          ? "E-mail/usuário ou senha não conferem."
-          : "Não foi possível criar o acesso. Tente outro e-mail/usuário ou uma senha mais longa.",
-      );
+      setError("E-mail/usuário ou senha não conferem.");
     } finally {
       setBusy(false);
     }
@@ -115,14 +104,14 @@ function LoginCard({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <PageShell>
-      <div className="mx-auto mt-10 w-full rounded-3xl border border-border bg-card p-6 shadow-petal">
-        <h1 className="text-center text-3xl font-medium">Área da mamãe 💕</h1>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
-          Entre para ver o resumo dos presentes do Chá da Maya.
-        </p>
+      <div className="flex min-h-[75vh] items-center justify-center">
+        <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-petal">
+          <h1 className="text-center text-3xl font-medium">Área da mamãe 💕</h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Entre para ver o resumo dos presentes do Chá da Maya.
+          </p>
 
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          {mode === "entrar" ? (
+          <form onSubmit={submit} className="mt-6 space-y-4">
             <div>
               <label htmlFor="identifier" className="text-sm font-semibold">
                 E-mail ou usuário
@@ -137,94 +126,47 @@ function LoginCard({ onSuccess }: { onSuccess: () => void }) {
                 className="mt-1 h-12 rounded-2xl bg-background text-base"
               />
             </div>
-          ) : (
-            <>
-              <div>
-                <label htmlFor="email" className="text-sm font-semibold">
-                  E-mail
-                </label>
+            <div>
+              <label htmlFor="password" className="text-sm font-semibold">
+                Senha
+              </label>
+              <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-1 h-12 rounded-2xl bg-background text-base"
+                  minLength={6}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="mt-1 h-12 rounded-2xl bg-background pr-12 text-base"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  className="absolute top-1/2 right-3 mt-0.5 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
               </div>
-              <div>
-                <label htmlFor="username" className="text-sm font-semibold">
-                  Nome de usuário{" "}
-                  <span className="font-normal text-muted-foreground">(opcional)</span>
-                </label>
-                <Input
-                  id="username"
-                  type="text"
-                  autoComplete="username"
-                  minLength={3}
-                  maxLength={40}
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="Para entrar sem digitar o e-mail"
-                  className="mt-1 h-12 rounded-2xl bg-background text-base"
-                />
-              </div>
-            </>
-          )}
-          <div>
-            <label htmlFor="password" className="text-sm font-semibold">
-              Senha
-            </label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete={mode === "entrar" ? "current-password" : "new-password"}
-                required
-                minLength={6}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="mt-1 h-12 rounded-2xl bg-background pr-12 text-base"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                className="absolute top-1/2 right-3 mt-0.5 -translate-y-1/2 text-muted-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  <Eye className="h-5 w-5" aria-hidden="true" />
-                )}
-              </button>
             </div>
-          </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="h-14 w-full rounded-full bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
-          >
-            {busy ? "Aguarde…" : mode === "entrar" ? "Entrar" : "Criar meu acesso"}
-          </button>
-        </form>
-
-        <button
-          type="button"
-          onClick={() => {
-            setMode(mode === "entrar" ? "criar" : "entrar");
-            setError(null);
-          }}
-          className="mt-4 w-full text-sm font-semibold text-primary"
-        >
-          {mode === "entrar"
-            ? "Primeiro acesso? Criar minha senha"
-            : "Já tenho acesso, quero entrar"}
-        </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="h-14 w-full rounded-full bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
+            >
+              {busy ? "Aguarde…" : "Entrar"}
+            </button>
+          </form>
+        </div>
       </div>
     </PageShell>
   );
