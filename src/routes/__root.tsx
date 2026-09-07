@@ -116,8 +116,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
+        <meta name="google" content="notranslate" />
         <HeadContent />
       </head>
       <body>
