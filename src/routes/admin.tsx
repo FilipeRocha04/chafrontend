@@ -402,9 +402,11 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
           </div>
 
           <div className="mt-3 space-y-2">
-            {all.map((item) => (
-              <ManageRow key={item.id} item={item} onEdit={() => setEditing(item)} />
-            ))}
+            {[...all]
+              .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+              .map((item) => (
+                <ManageRow key={item.id} item={item} onEdit={() => setEditing(item)} />
+              ))}
           </div>
         </section>
       )}
@@ -483,7 +485,9 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
       {view === "itens" && (
         <>
           {(categories.data ?? []).map((category) => {
-            const categoryItems = all.filter((item) => item.category_id === category.id);
+            const categoryItems = all
+              .filter((item) => item.category_id === category.id)
+              .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
             if (categoryItems.length === 0) return null;
             return (
               <section key={category.id} className="mt-8">

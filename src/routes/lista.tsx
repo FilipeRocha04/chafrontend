@@ -62,8 +62,14 @@ function QuantityRow({
         <Gift className="h-5 w-5 text-secondary-foreground" aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
-        {item.size && <p className="truncate text-xs text-muted-foreground">Tamanho {item.size}</p>}
+        <div className="flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-sm font-semibold text-foreground">{item.name}</p>
+          {item.size && (
+            <span className="inline-block shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-secondary-foreground">
+              Tamanho {item.size}
+            </span>
+          )}
+        </div>
         <p className="truncate text-xs text-muted-foreground">
           {soldOut ? "Meta já atingida" : `Restam ${remaining}`}
         </p>
@@ -194,14 +200,16 @@ function ListaPage() {
 
   const normalizedSearch = search.trim().toLowerCase();
 
-  const visibleItems = (items.data ?? []).filter((item) => {
-    const matchesCategory = activeCategory === "todos" || item.category_id === activeCategory;
-    const matchesSearch =
-      normalizedSearch === "" ||
-      item.name.toLowerCase().includes(normalizedSearch) ||
-      item.description?.toLowerCase().includes(normalizedSearch);
-    return matchesCategory && matchesSearch;
-  });
+  const visibleItems = (items.data ?? [])
+    .filter((item) => {
+      const matchesCategory = activeCategory === "todos" || item.category_id === activeCategory;
+      const matchesSearch =
+        normalizedSearch === "" ||
+        item.name.toLowerCase().includes(normalizedSearch) ||
+        item.description?.toLowerCase().includes(normalizedSearch);
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   const chosenItems = (items.data ?? [])
     .map((item) => ({ item, quantity: totals.data?.[item.id] ?? 0 }))
@@ -222,14 +230,16 @@ function ListaPage() {
   const showingChosen = activeCategory === "escolhidos";
 
   const normalizedPickerSearch = pickerSearch.trim().toLowerCase();
-  const pickerItems = (items.data ?? []).filter((item) => {
-    const matchesCategory = pickerCategory === "todos" || item.category_id === pickerCategory;
-    const matchesSearch =
-      normalizedPickerSearch === "" ||
-      item.name.toLowerCase().includes(normalizedPickerSearch) ||
-      item.description?.toLowerCase().includes(normalizedPickerSearch);
-    return matchesCategory && matchesSearch;
-  });
+  const pickerItems = (items.data ?? [])
+    .filter((item) => {
+      const matchesCategory = pickerCategory === "todos" || item.category_id === pickerCategory;
+      const matchesSearch =
+        normalizedPickerSearch === "" ||
+        item.name.toLowerCase().includes(normalizedPickerSearch) ||
+        item.description?.toLowerCase().includes(normalizedPickerSearch);
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   return (
     <PageShell>
