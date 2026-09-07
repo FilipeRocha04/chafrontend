@@ -313,23 +313,25 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
 
   return (
     <PageShell>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <div className="min-w-0">
-          <h1 className="truncate text-3xl font-medium">Chá da Maya 💕</h1>
-          <p className="truncate text-sm text-muted-foreground">Resumo dos presentes</p>
+      <div className="rounded-3xl border border-border bg-card p-4 shadow-petal">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-3xl font-medium">Chá da Maya 💕</h1>
+            <p className="truncate text-sm text-muted-foreground">Resumo dos presentes</p>
+          </div>
+          <button
+            type="button"
+            onClick={signOut}
+            aria-label="Sair"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-background text-muted-foreground"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={signOut}
-          aria-label="Sair"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-card text-muted-foreground"
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-        </button>
+        {me.data.email && (
+          <p className="mt-1 truncate text-xs text-muted-foreground">{me.data.email}</p>
+        )}
       </div>
-      {me.data.email && (
-        <p className="mt-1 truncate text-xs text-muted-foreground">{me.data.email}</p>
-      )}
 
       <div className="mt-6 grid grid-cols-3 gap-3">
         <SummaryCard label="Presentes prometidos" value={rows.length} />
