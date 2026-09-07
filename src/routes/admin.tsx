@@ -27,6 +27,7 @@ import {
 } from "@/lib/gifts";
 import { createUser, fetchUsers, updateUserRole, type AdminUserRow } from "@/lib/users";
 import { ApiError } from "@/lib/api";
+import { useDragScroll } from "@/lib/useDragScroll";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -235,6 +236,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
   const [editing, setEditing] = useState<GiftItem | "new" | null>(null);
   const [view, setView] = useState<"itens" | "pessoas" | "usuarios" | "gerenciar">("itens");
   const [creatingUser, setCreatingUser] = useState(false);
+  const tabsDrag = useDragScroll<HTMLDivElement>();
 
   const me = useQuery({ queryKey: ["admin-me"], queryFn: fetchMe });
 
@@ -339,7 +341,10 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         <SummaryCard label="Participantes" value={participants} />
       </div>
 
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
+      <div
+        {...tabsDrag}
+        className="scrollbar-hide mt-6 flex cursor-grab gap-2 overflow-x-auto pb-1 select-none active:cursor-grabbing"
+      >
         <button
           type="button"
           onClick={() => setView("itens")}
