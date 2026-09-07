@@ -40,6 +40,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const [authed, setAuthed] = useState<boolean | undefined>(undefined);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!hasToken()) {
@@ -50,9 +51,10 @@ function AdminPage() {
       .then(() => setAuthed(true))
       .catch(() => {
         logout();
+        queryClient.removeQueries({ queryKey: ["admin-me"] });
         setAuthed(false);
       });
-  }, []);
+  }, [queryClient]);
 
   if (authed === undefined) {
     return (
@@ -63,7 +65,14 @@ function AdminPage() {
   }
 
   if (authed === false) {
-    return <LoginCard onSuccess={() => setAuthed(true)} />;
+    return (
+      <LoginCard
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin-me"] });
+          setAuthed(true);
+        }}
+      />
+    );
   }
 
   return <AdminDashboard onSignOut={() => setAuthed(false)} />;
