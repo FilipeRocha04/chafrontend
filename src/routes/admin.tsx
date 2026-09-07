@@ -25,7 +25,7 @@ import {
   updateGiftItem,
   type GiftItem,
 } from "@/lib/gifts";
-import { fetchUsers, updateUserRole, type AdminUserRow } from "@/lib/users";
+import { createUser, fetchUsers, updateUserRole, type AdminUserRow } from "@/lib/users";
 import { ApiError } from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
@@ -234,6 +234,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
   const [openItem, setOpenItem] = useState<GiftItem | null>(null);
   const [editing, setEditing] = useState<GiftItem | "new" | null>(null);
   const [view, setView] = useState<"itens" | "pessoas" | "usuarios">("itens");
+  const [creatingUser, setCreatingUser] = useState(false);
 
   const me = useQuery({ queryKey: ["admin-me"], queryFn: fetchMe });
 
@@ -374,24 +375,39 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
 
       {view === "usuarios" && (
         <section className="mt-6">
-          {users.isLoading && <ButterflyLoader />}
-          {users.isError && (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              Não conseguimos carregar os usuários.
-            </p>
-          )}
-          {!users.isLoading && !users.isError && (users.data ?? []).length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              Nenhum usuário cadastrado ainda.
-            </p>
-          )}
-          <div className="space-y-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <h2 className="min-w-0 truncate font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
+              Usuários cadastrados
+            </h2>
+            <button
+              type="button"
+              onClick={() => setCreatingUser(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" /> Novo usuário
+            </button>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {users.isLoading && <ButterflyLoader />}
+            {users.isError && (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                Não conseguimos carregar os usuários.
+              </p>
+            )}
+            {!users.isLoading && !users.isError && (users.data ?? []).length === 0 && (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                Nenhum usuário cadastrado ainda.
+              </p>
+            )}
             {(users.data ?? []).map((row) => (
               <UserRow key={row.id} user={row} isSelf={row.id === me.data?.id} />
             ))}
           </div>
         </section>
       )}
+
+      <UserFormDialog open={creatingUser} onClose={() => setCreatingUser(false)} />
 
       {view === "pessoas" && (
         <section className="mt-6">
@@ -593,6 +609,141 @@ function UserRow({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
       )}
       {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
     </div>
+  );
+}
+
+function UserFormDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  function reset() {
+    setEmail("");
+    setUsername("");
+    setPassword("");
+    setShowPassword(false);
+    setIsAdmin(false);
+  }
+
+  const save = useMutation({
+    mutationFn: () =>
+      createUser({
+        email: email.trim(),
+        username: username.trim() ? username.trim() : null,
+        password,
+        isAdmin,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      reset();
+      onClose();
+    },
+  });
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) {
+          reset();
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="max-w-[520px] rounded-3xl bg-card">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl font-medium">Novo usuário</DialogTitle>
+          <DialogDescription>Crie um acesso para outra pessoa entrar na área da mamãe.</DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            save.mutate();
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label htmlFor="new-user-email" className="text-sm font-semibold">
+              E-mail
+            </label>
+            <Input
+              id="new-user-email"
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="mt-1 h-12 rounded-2xl bg-background text-base"
+            />
+          </div>
+          <div>
+            <label htmlFor="new-user-username" className="text-sm font-semibold">
+              Nome de usuário <span className="font-normal text-muted-foreground">(opcional)</span>
+            </label>
+            <Input
+              id="new-user-username"
+              type="text"
+              minLength={3}
+              maxLength={40}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className="mt-1 h-12 rounded-2xl bg-background text-base"
+            />
+          </div>
+          <div>
+            <label htmlFor="new-user-password" className="text-sm font-semibold">
+              Senha
+            </label>
+            <div className="relative">
+              <Input
+                id="new-user-password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="mt-1 h-12 rounded-2xl bg-background pr-12 text-base"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                className="absolute top-1/2 right-3 mt-0.5 -translate-y-1/2 text-muted-foreground"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3">
+            <span className="text-sm font-semibold">Conceder acesso de admin</span>
+            <Switch checked={isAdmin} onCheckedChange={setIsAdmin} aria-label="Conceder acesso de admin" />
+          </div>
+
+          {save.isError && (
+            <p className="text-sm text-destructive">
+              {save.error instanceof ApiError
+                ? save.error.message
+                : "Não foi possível criar o usuário."}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={save.isPending}
+            className="h-14 w-full rounded-full bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-70"
+          >
+            {save.isPending ? "Criando…" : "Criar usuário"}
+          </button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -18,3 +18,20 @@ export async function updateUserRole(id: string, isAdmin: boolean): Promise<Admi
     body: JSON.stringify({ is_admin: isAdmin }),
   });
 }
+
+export async function createUser(input: {
+  email: string;
+  username: string | null;
+  password: string;
+  isAdmin: boolean;
+}): Promise<AdminUserRow> {
+  return apiFetch<AdminUserRow>("/api/admin/users", {
+    method: "POST",
+    body: JSON.stringify({
+      email: input.email,
+      username: input.username,
+      password: input.password,
+      is_admin: input.isAdmin,
+    }),
+  });
+}
