@@ -62,8 +62,8 @@ function QuantityRow({
         <Gift className="h-5 w-5 text-secondary-foreground" aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="min-w-0 truncate text-sm font-semibold text-foreground">{item.name}</p>
+        <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+          <p className="min-w-0 flex-1 text-sm font-semibold text-foreground">{item.name}</p>
           {item.size && (
             <span className="inline-block shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-secondary-foreground">
               Tamanho {item.size}
