@@ -200,6 +200,12 @@ function ListaPage() {
 
   const normalizedSearch = search.trim().toLowerCase();
 
+  const categoryOrder = new Map((categories.data ?? []).map((c) => [c.id, c.display_order]));
+  const byCategoryThenName = (a: GiftItem, b: GiftItem) => {
+    const orderDiff = (categoryOrder.get(a.category_id) ?? 0) - (categoryOrder.get(b.category_id) ?? 0);
+    return orderDiff !== 0 ? orderDiff : a.name.localeCompare(b.name, "pt-BR");
+  };
+
   const visibleItems = (items.data ?? [])
     .filter((item) => {
       const matchesCategory = activeCategory === "todos" || item.category_id === activeCategory;
@@ -209,7 +215,7 @@ function ListaPage() {
         item.description?.toLowerCase().includes(normalizedSearch);
       return matchesCategory && matchesSearch;
     })
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    .sort(byCategoryThenName);
 
   const chosenItems = (items.data ?? [])
     .map((item) => ({ item, quantity: totals.data?.[item.id] ?? 0 }))
@@ -239,7 +245,7 @@ function ListaPage() {
         item.description?.toLowerCase().includes(normalizedPickerSearch);
       return matchesCategory && matchesSearch;
     })
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    .sort(byCategoryThenName);
 
   return (
     <PageShell>
