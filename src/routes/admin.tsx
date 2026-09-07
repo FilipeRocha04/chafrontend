@@ -233,7 +233,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
   const queryClient = useQueryClient();
   const [openItem, setOpenItem] = useState<GiftItem | null>(null);
   const [editing, setEditing] = useState<GiftItem | "new" | null>(null);
-  const [view, setView] = useState<"itens" | "pessoas" | "usuarios">("itens");
+  const [view, setView] = useState<"itens" | "pessoas" | "usuarios" | "gerenciar">("itens");
   const [creatingUser, setCreatingUser] = useState(false);
 
   const me = useQuery({ queryKey: ["admin-me"], queryFn: fetchMe });
@@ -339,11 +339,11 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         <SummaryCard label="Participantes" value={participants} />
       </div>
 
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
         <button
           type="button"
           onClick={() => setView("itens")}
-          className={`h-10 flex-1 rounded-full border text-sm font-semibold transition-colors ${
+          className={`h-10 shrink-0 rounded-full border px-5 text-sm font-semibold whitespace-nowrap transition-colors ${
             view === "itens"
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-muted-foreground"
@@ -354,7 +354,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         <button
           type="button"
           onClick={() => setView("pessoas")}
-          className={`h-10 flex-1 rounded-full border text-sm font-semibold transition-colors ${
+          className={`h-10 shrink-0 rounded-full border px-5 text-sm font-semibold whitespace-nowrap transition-colors ${
             view === "pessoas"
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-muted-foreground"
@@ -365,7 +365,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         <button
           type="button"
           onClick={() => setView("usuarios")}
-          className={`h-10 flex-1 rounded-full border text-sm font-semibold transition-colors ${
+          className={`h-10 shrink-0 rounded-full border px-5 text-sm font-semibold whitespace-nowrap transition-colors ${
             view === "usuarios"
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-muted-foreground"
@@ -373,7 +373,41 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         >
           Usuários
         </button>
+        <button
+          type="button"
+          onClick={() => setView("gerenciar")}
+          className={`h-10 shrink-0 rounded-full border px-5 text-sm font-semibold whitespace-nowrap transition-colors ${
+            view === "gerenciar"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-card text-muted-foreground"
+          }`}
+        >
+          Gerenciar listinha
+        </button>
       </div>
+
+      {view === "gerenciar" && (
+        <section className="mt-6">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <h2 className="min-w-0 truncate font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
+              Gerenciar a listinha
+            </h2>
+            <button
+              type="button"
+              onClick={() => setEditing("new")}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" /> Novo item
+            </button>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {all.map((item) => (
+              <ManageRow key={item.id} item={item} onEdit={() => setEditing(item)} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {view === "usuarios" && (
         <section className="mt-6">
@@ -492,27 +526,6 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
               </section>
             );
           })}
-
-          <section className="mt-10">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-              <h2 className="min-w-0 truncate font-sans text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                Gerenciar a listinha
-              </h2>
-              <button
-                type="button"
-                onClick={() => setEditing("new")}
-                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" /> Novo item
-              </button>
-            </div>
-
-            <div className="mt-3 space-y-2">
-              {all.map((item) => (
-                <ManageRow key={item.id} item={item} onEdit={() => setEditing(item)} />
-              ))}
-            </div>
-          </section>
         </>
       )}
 
