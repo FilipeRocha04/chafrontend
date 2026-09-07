@@ -25,6 +25,8 @@ import {
   updateGiftItem,
   type GiftItem,
 } from "@/lib/gifts";
+import { fetchUsers, updateUserRole, type AdminUserRow } from "@/lib/users";
+import { ApiError } from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -231,7 +233,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
   const queryClient = useQueryClient();
   const [openItem, setOpenItem] = useState<GiftItem | null>(null);
   const [editing, setEditing] = useState<GiftItem | "new" | null>(null);
-  const [view, setView] = useState<"itens" | "pessoas">("itens");
+  const [view, setView] = useState<"itens" | "pessoas" | "usuarios">("itens");
 
   const me = useQuery({ queryKey: ["admin-me"], queryFn: fetchMe });
 
@@ -250,6 +252,11 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
     queryKey: ["lista-pessoas"],
     queryFn: fetchPeopleList,
     enabled: me.data?.is_admin === true && view === "pessoas",
+  });
+  const users = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: fetchUsers,
+    enabled: me.data?.is_admin === true && view === "usuarios",
   });
 
   async function signOut() {
@@ -352,7 +359,39 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => void }) {
         >
           Lista de pessoas
         </button>
+        <button
+          type="button"
+          onClick={() => setView("usuarios")}
+          className={`h-10 flex-1 rounded-full border text-sm font-semibold transition-colors ${
+            view === "usuarios"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-card text-muted-foreground"
+          }`}
+        >
+          Usuários
+        </button>
       </div>
+
+      {view === "usuarios" && (
+        <section className="mt-6">
+          {users.isLoading && <ButterflyLoader />}
+          {users.isError && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              Não conseguimos carregar os usuários.
+            </p>
+          )}
+          {!users.isLoading && !users.isError && (users.data ?? []).length === 0 && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              Nenhum usuário cadastrado ainda.
+            </p>
+          )}
+          <div className="space-y-2">
+            {(users.data ?? []).map((row) => (
+              <UserRow key={row.id} user={row} isSelf={row.id === me.data?.id} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {view === "pessoas" && (
         <section className="mt-6">
@@ -509,6 +548,50 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-2xl border border-border bg-card p-3 text-center shadow-petal">
       <p className="text-2xl font-semibold text-primary">{value}</p>
       <p className="mt-1 text-[11px] leading-tight text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function UserRow({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
+  const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
+
+  const toggle = useMutation({
+    mutationFn: (isAdmin: boolean) => updateUserRole(user.id, isAdmin),
+    onMutate: () => setError(null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (err) => {
+      setError(err instanceof ApiError ? err.message : "Não foi possível atualizar a permissão.");
+    },
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card px-4 py-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{user.username || user.email}</p>
+          <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground">
+            {user.is_admin ? "Admin" : "Usuário"}
+          </span>
+          <Switch
+            checked={user.is_admin}
+            disabled={toggle.isPending || isSelf}
+            onCheckedChange={(value) => toggle.mutate(value)}
+            aria-label={`Alternar permissão de admin para ${user.email}`}
+          />
+        </div>
+      </div>
+      {isSelf && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Você não pode alterar sua própria permissão.
+        </p>
+      )}
+      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
     </div>
   );
 }

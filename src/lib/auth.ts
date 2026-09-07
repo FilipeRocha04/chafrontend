@@ -1,6 +1,6 @@
 import { apiFetch, getToken, setToken } from "./api";
 
-export type AdminMe = { email: string; username: string | null; is_admin: boolean };
+export type AdminMe = { id: string; email: string; username: string | null; is_admin: boolean };
 type AuthResponse = {
   access_token: string;
   email: string;
