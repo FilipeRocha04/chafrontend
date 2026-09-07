@@ -63,7 +63,7 @@ function QuantityRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-          <p className="min-w-0 flex-1 text-sm font-semibold text-foreground">{item.name}</p>
+          <p className="text-sm font-semibold text-foreground">{item.name}</p>
           {item.size && (
             <span className="inline-block shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-secondary-foreground">
               Tamanho {item.size}
