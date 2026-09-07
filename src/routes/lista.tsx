@@ -379,7 +379,10 @@ function ListaPage() {
         <div className="h-24" aria-hidden="true" />
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] shadow-petal">
+      <div
+        className="fixed inset-x-0 z-30 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] shadow-petal"
+        style={{ bottom: "var(--admin-nav-h, 0px)" }}
+      >
         <div className="mx-auto flex w-full max-w-[600px] items-center justify-between gap-3 px-5 py-3">
           {cartEntries.length > 0 ? (
             <button

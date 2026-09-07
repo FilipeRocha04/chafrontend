@@ -19,8 +19,10 @@ export function BottomNav() {
 
   useEffect(() => {
     document.body.style.paddingBottom = "72px";
+    document.documentElement.style.setProperty("--admin-nav-h", "72px");
     return () => {
       document.body.style.paddingBottom = "";
+      document.documentElement.style.removeProperty("--admin-nav-h");
     };
   }, []);
 
